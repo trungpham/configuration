@@ -41,6 +41,10 @@
   tags:
     - datadog
 
+- name: enable jenkins telemetry
+  shell: cp /etc/dd-agent/conf.d/jenkins.yaml.example /etc/dd-agent/conf.d/jenkins.yaml creates=/etc/dd-agent/conf.d/jenkins.yaml
+  when: COMMON_ENABLE_DATADOG_JENKINS
+
 - name: update api-key
   lineinfile: >
     dest="/etc/dd-agent/datadog.conf"
