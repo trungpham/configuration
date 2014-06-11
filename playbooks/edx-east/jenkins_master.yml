@@ -8,9 +8,6 @@
   gather_facts: True
   vars:
     COMMON_DATA_DIR: "/mnt"
-    COMMON_ENABLE_DATADOG_JENKINS: True
   roles:
     - common
     - jenkins_master
-    - role: datadog
-      when: COMMON_ENABLE_DATADOG
