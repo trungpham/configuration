@@ -12,6 +12,7 @@
     home="{{ xqueue_app_dir }}"
     createhome=no
     shell=/bin/false
+  tags: pre_pkg
   notify:
     - restart xqueue
 

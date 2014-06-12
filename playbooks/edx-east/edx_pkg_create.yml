@@ -6,6 +6,7 @@
   vars:
     migrate_db: "yes"
     openid_workaround: True
+    configuration_version: jarv/pkgs
   vars_files:
     - roles/ora/defaults/main.yml
   roles:
