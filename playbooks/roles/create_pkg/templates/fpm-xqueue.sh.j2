@@ -1,10 +1,50 @@
-cat <<EOF >/var/tmp/xqueue-pre-script
-EOF
-cat <<EOF >/var/tmp/xqueue-post-script
+cat <<EOF >/tmp/$$-before-script
+#!/usr/bin/env bash
+cd {{ edx_ansible_code_dir }}/playbooks/edx-east
+{{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, xqueue.yml \
+  -e COMMON_BASE_DIR={{ COMMON_BASE_DIR }} --tags pre_pkg
 EOF
 
+cat <<'EOF' >/tmp/$$-after-script
+#!/usr/bin/env bash
+set -x
+read -p "Enter a mysql hostname for xqueue [localhost]: " db_host
+db_host=${db_host:-localhost}
+
+read -p "Enter a mysql hostname for xqueue [3306]: " db_port
+db_port=${db_port:-3306}
+
+read -p "Enter a mysql user for xqueue [root]: " db_user
+db_user=${db_user:-root}
+
+read -p "Enter a mysql password for xqueue [password]: " db_password
+db_password=${db_password:-password}
+
+read -p "Enter a mysql database for xqueue (will try to create if it doesn't exist) [xqueue]: " db_name
+db_name=${db_name:-xqueue}
+
+if ! mysql -u $db_user -p${db_password} -P $db_port -e "use ${db_name}" &>/dev/null; then
+  mysql -u $db_user -p${db_password} -P $db_port -e "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
+fi
+
+ansible_extra_args+=" -e COMMON_MYSQL_MIGRATE_USER=$db_user"
+ansible_extra_args+=" -e COMMON_MYSQL_MIGRATE_PASS=$db_password"
+ansible_extra_args+=" -e XQUEUE_MYSQL_DB_NAME=$db_name"
+ansible_extra_args+=" -e XQUEUE_MYSQL_USER=$db_user"
+ansible_extra_args+=" -e XQUEUE_MYSQL_PASSWORD=$db_password"
+ansible_extra_args+=" -e XQUEUE_MYSQL_HOST=$db_host"
+ansible_extra_args+=" -e XQUEUE_MYSQL_PORT=$db_port"
+ansible_extra_args+=" -e COMMON_BASE_DIR={{ COMMON_BASE_DIR }}"
+ansible_extra_args+=" -e migrate_db=yes"
+
+cd {{ edx_ansible_code_dir }}/playbooks/edx-east
+{{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, xqueue.yml \
+  --tags post_pkg $ansible_extra_args
+EOF
 
 fpm -s dir -t deb -n edx-xqueue -v 1.0 -a native --deb-use-file-permissions \
+  --before-install /tmp/$$-before-script \
+  --after-install /tmp/$$-after-script \
   {% for exclude in create_pkg_excludes -%}
   --exclude {{ exclude }} \
   {% endfor -%}
@@ -14,5 +54,7 @@ fpm -s dir -t deb -n edx-xqueue -v 1.0 -a native --deb-use-file-permissions \
   --config-files {{ xqueue_app_dir }}/xqueue.env.json    \
   --config-files {{ xqueue_app_dir }}/xqueue.auth.json   \
   {{ xqueue_app_dir }} \
-  {{ xqueue_data_dir }} \
-  /opt/edx/app/supervisor/conf.d/xqueue.conf
+  /opt/edx/app/supervisor/conf.available.d/xqueue.conf \
+  /opt/edx/app/supervisor/conf.available.d/xqueue_consumer.conf \
+  /opt/edx/app/supervisor/conf.d/xqueue.conf \
+  /opt/edx/app/supervisor/conf.d/xqueue_consumer.conf

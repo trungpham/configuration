@@ -11,18 +11,18 @@ cat <<EOF >/tmp/$$-after-script
 service supervisor restart
 EOF
 
-
-# move supervisor symlinks temporarily
-mkdir /tmp/$$-supervisor-symlinks
-mv {{ COMMON_BASE_DIR }}/app/supervisor/conf.d/* /tmp/$$-supervisor-symlinks/.
-
-fpm -s dir -t deb -n edx-common -v 1.0 -a native --deb-use-file-permissions \
+fpm -s dir -t deb -n edx-base -v 1.0 -a native --deb-use-file-permissions \
   --before-install /tmp/$$-before-script \
   --after-install /tmp/$$-after-script \
   {% for exclude in create_pkg_excludes -%}
   --exclude {{ exclude }} \
   {% endfor -%}
+  --exclude "**/conf.d/**" \
+  --exclude "**/conf.available.d/**" \
   {% for pkg in common_debian_pkgs -%}
+  -d {{ pkg }} \
+  {% endfor -%}
+  {% for pkg in edxlocal_debian_pkgs -%}
   -d {{ pkg }} \
   {% endfor -%}
   /etc/sudoers.d/ssh_key_forward \
@@ -39,6 +39,3 @@ fpm -s dir -t deb -n edx-common -v 1.0 -a native --deb-use-file-permissions \
   /etc/init/supervisor.conf \
   /opt/edx/bin/supervisorctl \
   /opt/edx/bin/ansible-playbook
-
-mv /tmp/$$-supervisor-symlinks/* {{ COMMON_BASE_DIR }}/app/supervisor/conf.d/.
-rmdir /tmp/$$-supervisor-symlinks
