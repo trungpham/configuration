@@ -6,24 +6,31 @@ cd {{ edx_ansible_code_dir }}/playbooks/edx-east
 EOF
 
 cat <<'EOF' >/tmp/$$-after-script
-#!/usr/bin/env bash
-set -x
-read -p "Enter a mysql hostname for xqueue [localhost]: " db_host
+#!/bin/bash
+
+if [[ -f /tmp/<%= name %>.configured ]]; then
+    read -p "Would you like re-configure <%= name %> [Y/n]: " reconfig
+    if [[ $reconfig =~ ^[Nn] ]]; then
+      exit 0
+    fi
+fi
+
+read -p "Enter a mysql hostname for <%= name %> [localhost]: " db_host
 db_host=${db_host:-localhost}
 
-read -p "Enter a mysql hostname for xqueue [3306]: " db_port
+read -p "Enter a mysql hostname for <%= name %> [3306]: " db_port
 db_port=${db_port:-3306}
 
-read -p "Enter a mysql user for xqueue [root]: " db_user
+read -p "Enter a mysql user for <%= name %> [root]: " db_user
 db_user=${db_user:-root}
 
-read -p "Enter a mysql password for xqueue [password]: " db_password
+read -p "Enter a mysql password for <%= name %> [password]: " db_password
 db_password=${db_password:-password}
 
-read -p "Enter a mysql database for xqueue (will try to create if it doesn't exist) [xqueue]: " db_name
+read -p "Enter a mysql database for <%= name %> (will try to create if it doesn't exist) [xqueue]: " db_name
 db_name=${db_name:-xqueue}
 
-if ! mysql -u $db_user -p${db_password} -P $db_port -e "use ${db_name}" &>/dev/null; then
+if ! mysql -u $db_user -p${db_password} -P $db_port -e "use ${db_name}" >/dev/null 2>&1; then
   mysql -u $db_user -p${db_password} -P $db_port -e "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
 fi
 
@@ -40,9 +47,12 @@ ansible_extra_args+=" -e migrate_db=yes"
 cd {{ edx_ansible_code_dir }}/playbooks/edx-east
 {{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, xqueue.yml \
   --tags post_pkg $ansible_extra_args
+
+touch /tmp/<%= name %>.configured
+
 EOF
 
-fpm -s dir -t deb -n edx-xqueue -v 1.0 -a native --deb-use-file-permissions \
+fpm -s dir -t deb -n edx-xqueue --description "edX xqueue service" -v 1.0 -a native --deb-use-file-permissions --template-scripts \
   --before-install /tmp/$$-before-script \
   --after-install /tmp/$$-after-script \
   {% for exclude in create_pkg_excludes -%}
