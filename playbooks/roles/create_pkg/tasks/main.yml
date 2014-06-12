@@ -32,3 +32,4 @@
   with_items:
     - fpm-base.sh
     - fpm-xqueue.sh
+    - fpm-edxapp.sh

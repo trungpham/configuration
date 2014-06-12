@@ -22,9 +22,6 @@ fpm -s dir -t deb -n edx-base -v 1.0 -a native --deb-use-file-permissions \
   {% for pkg in common_debian_pkgs -%}
   -d {{ pkg }} \
   {% endfor -%}
-  {% for pkg in edxlocal_debian_pkgs -%}
-  -d {{ pkg }} \
-  {% endfor -%}
   /etc/sudoers.d/ssh_key_forward \
   /etc/rsyslog.d/99-edx.conf \
   /etc/logrotate.d/edx-services  \

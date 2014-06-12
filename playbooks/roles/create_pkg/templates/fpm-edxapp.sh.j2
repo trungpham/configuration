@@ -27,19 +27,37 @@ db_user=${db_user:-root}
 read -p "Enter a mysql password for <%= name %> [password]: " db_password
 db_password=${db_password:-password}
 
-read -p "Enter a mysql database for <%= name %> (will try to create if it doesn't exist) [xqueue]: " db_name
-db_name=${db_name:-xqueue}
+read -p "Enter a mysql database for <%= name %> (will try to create if it doesn't exist) [edxapp]: " db_name
+db_name=${db_name:-edxapp}
 
 if ! mysql -u $db_user -p${db_password} -P $db_port -e "use ${db_name}" >/dev/null 2>&1; then
   mysql -u $db_user -p${db_password} -P $db_port -e "CREATE DATABASE ${db_name} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
 fi
 
+read -p "Enter a mongo hostname for <%= name %> [localhost]: " mongo_host
+mongo_host=${mongo_host:-localhost}
+
+read -p "Enter a mongo port for <%= name %> [27017]: " mongo_port
+mongo_port=${mongo_port:-27017}
+
+read -p "Enter a mongo user for <%= name %> [root]: " mongo_user
+mongo_user=${mongo_user:-root}
+
+read -p "Enter a mongo password for <%= name %> [password]: " mongo_password
+mongo_password=${mongo_password:-password}
+
+read -p "Enter a mongo database for <%= name %> (will try to create if it doesn't exist) [edxapp]: " mongo_name
+mongo_name=${mongo_name:-edxapp}
+
+
     cat << EXTRA_EOF >/tmp/$$-extra-vars.yml
 
-EDXAPP_MONGO_HOSTS: ['localhost']
-EDXAPP_MONGO_PASSWORD: 'password'
-EDXAPP_MONGO_PORT: 27017
-EDXAPP_MONGO_USER: 'edxapp'
+EDXAPP_MONGO_HOSTS:
+  - $mongo_host
+EDXAPP_MONGO_PASSWORD: $mongo_password
+EDXAPP_MONGO_PORT: $mongo_port
+EDXAPP_MONGO_USER: $mongo_user
+EDXAPP_MONGO_DB_NAME: $mongo_name
 COMMON_MYSQL_MIGRATE_USER: $db_user
 COMMON_MYSQL_MIGRATE_PASS: $db_password
 EDXAPP_MYSQL_DB_NAME: $db_name
