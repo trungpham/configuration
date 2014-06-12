@@ -1,0 +1,24 @@
+---
+#
+# edX Configuration
+#
+# github:     https://github.com/edx/configuration
+# wiki:       https://github.com/edx/configuration/wiki
+# code style: https://github.com/edx/configuration/wiki/Ansible-Coding-Conventions
+# license:    https://github.com/edx/configuration/blob/master/LICENSE.TXT
+#
+#
+#
+# Tasks for role create_pkg
+#
+# Overview:
+# Creates packages from edX single server installation
+#
+#
+
+- name: Install system ruby-dev
+  apt: pkg={{ item }}
+  with_items: create_pkg_debian_pkgs
+
+- name: Install fpm
+  gem: name=fpm
