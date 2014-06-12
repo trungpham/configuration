@@ -1,4 +1,10 @@
-fpm -s dir -t deb -n edx-xqueue -v 1.0 -a native  \
+cat <<EOF >/var/tmp/xqueue-pre-script
+EOF
+cat <<EOF >/var/tmp/xqueue-post-script
+EOF
+
+
+fpm -s dir -t deb -n edx-xqueue -v 1.0 -a native --deb-use-file-permissions \
   {% for exclude in create_pkg_excludes -%}
   --exclude {{ exclude }} \
   {% endfor -%}
@@ -8,4 +14,5 @@ fpm -s dir -t deb -n edx-xqueue -v 1.0 -a native  \
   --config-files {{ xqueue_app_dir }}/xqueue.env.json    \
   --config-files {{ xqueue_app_dir }}/xqueue.auth.json   \
   {{ xqueue_app_dir }} \
-  {{ xqueue_data_dir }}
+  {{ xqueue_data_dir }} \
+  /opt/edx/app/supervisor/conf.d/xqueue.conf

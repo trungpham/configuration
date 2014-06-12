@@ -1,0 +1,44 @@
+
+cat <<EOF >/tmp/$$-before-script
+#!/usr/bin/env bash
+if ! id -u {{ supervisor_user }} &>/dev/null; then useradd -M -s /bin/false {{ supervisor_user }}; fi
+if ! id -u {{ supervisor_user }} &>/dev/null; then useradd -M -s /bin/false {{ supervisor_service_user }}; fi
+if ! id -u {{ edx_ansible_user }} &>/dev/null; then useradd -M -s /bin/false -d {{ edx_ansible_app_dir }} {{ edx_ansible_user }}; fi
+EOF
+
+cat <<EOF >/tmp/$$-after-script
+#!/usr/bin/env bash
+service supervisor restart
+EOF
+
+
+# move supervisor symlinks temporarily
+mkdir /tmp/$$-supervisor-symlinks
+mv {{ COMMON_BASE_DIR }}/app/supervisor/conf.d/* /tmp/$$-supervisor-symlinks/.
+
+fpm -s dir -t deb -n edx-common -v 1.0 -a native --deb-use-file-permissions \
+  --before-install /tmp/$$-before-script \
+  --after-install /tmp/$$-after-script \
+  {% for exclude in create_pkg_excludes -%}
+  --exclude {{ exclude }} \
+  {% endfor -%}
+  {% for pkg in common_debian_pkgs -%}
+  -d {{ pkg }} \
+  {% endfor -%}
+  /etc/sudoers.d/ssh_key_forward \
+  /etc/rsyslog.d/99-edx.conf \
+  /etc/logrotate.d/edx-services  \
+  /etc/logrotate.d/hourly/tracking.log \
+  /etc/cron.hourly/logrotate \
+  {{ supervisor_app_dir }} \
+  {{ supervisor_data_dir }} \
+  {{ supervisor_log_dir }} \
+  {{ edx_ansible_app_dir }} \
+  {{ edx_ansible_data_dir }} \
+  /opt/edx/etc/supervisord.conf \
+  /etc/init/supervisor.conf \
+  /opt/edx/bin/supervisorctl \
+  /opt/edx/bin/ansible-playbook
+
+mv /tmp/$$-supervisor-symlinks/* {{ COMMON_BASE_DIR }}/app/supervisor/conf.d/.
+rmdir /tmp/$$-supervisor-symlinks

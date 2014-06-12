@@ -16,9 +16,19 @@
 #
 #
 
-- name: Install system ruby-dev
+- name: Install apt package dependencies
   apt: pkg={{ item }}
   with_items: create_pkg_debian_pkgs
 
 - name: Install fpm
-  gem: name=fpm
+  shell: >
+    gem install fpm
+    creates=/usr/local/bin/fpm
+
+- name: Create fpm templates
+  template: >
+    src={{ item }}.j2
+    dest=/var/tmp/{{ item }}
+  with_items:
+    - fpm-base.sh
+    - fpm-xqueue.sh
