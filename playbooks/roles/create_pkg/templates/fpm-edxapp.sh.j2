@@ -1,7 +1,7 @@
 cat <<EOF >/tmp/$$-before-script
 #!/usr/bin/env bash
 cd {{ edx_ansible_code_dir }}/playbooks/edx-east
-{{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, xqueue.yml \
+{{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, edxapp.yml \
   -e COMMON_BASE_DIR={{ COMMON_BASE_DIR }} --tags pre_pkg
 EOF
 
@@ -35,40 +35,51 @@ if ! mysql -u $db_user -p${db_password} -P $db_port -e "use ${db_name}" >/dev/nu
 fi
 
     cat << EXTRA_EOF >/tmp/$$-extra-vars.yml
----
+
+EDXAPP_MONGO_HOSTS: ['localhost']
+EDXAPP_MONGO_PASSWORD: 'password'
+EDXAPP_MONGO_PORT: 27017
+EDXAPP_MONGO_USER: 'edxapp'
 COMMON_MYSQL_MIGRATE_USER: $db_user
 COMMON_MYSQL_MIGRATE_PASS: $db_password
-XQUEUE_MYSQL_DB_NAME: $db_name
-XQUEUE_MYSQL_USER: $db_user
-XQUEUE_MYSQL_PASSWORD: $db_password
-XQUEUE_MYSQL_HOST: $db_host
-XQUEUE_MYSQL_PORT: $db_port
+EDXAPP_MYSQL_DB_NAME: $db_name
+EDXAPP_MYSQL_USER: $db_user
+EDXAPP_MYSQL_PASSWORD: $db_password
+EDXAPP_MYSQL_HOST: $db_host
+EDXAPP_MYSQL_PORT: $db_port
 COMMON_BASE_DIR: {{ COMMON_BASE_DIR }}
 migrate_db: yes
 
 EXTRA_EOF
 
 cd {{ edx_ansible_code_dir }}/playbooks/edx-east
-{{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, xqueue.yml \
+{{ edx_ansible_venv_bin }}/ansible-playbook -c local -i localhost, edxapp.yml \
   --tags post_pkg -e@/tmp/$$-extra-vars.yml
 
 touch /tmp/<%= name %>.configured
 
 EOF
 
-fpm -s dir -t deb -n edx-xqueue --description "edX xqueue service" -v 1.0 -a native --deb-use-file-permissions --template-scripts \
+fpm -s dir -t deb -n edx-edxapp --description "edX edxapp service" -v 1.0 -a native --deb-use-file-permissions --template-scripts \
   --before-install /tmp/$$-before-script \
   --after-install /tmp/$$-after-script \
   {% for exclude in create_pkg_excludes -%}
   --exclude {{ exclude }} \
   {% endfor -%}
-  {% for pkg in xqueue_debian_pkgs -%}
+  {% for pkg in edxapp_debian_pkgs -%}
   -d {{ pkg }} \
   {% endfor -%}
-  --config-files {{ xqueue_app_dir }}/xqueue.env.json    \
-  --config-files {{ xqueue_app_dir }}/xqueue.auth.json   \
-  {{ xqueue_app_dir }} \
-  /opt/edx/app/supervisor/conf.available.d/xqueue.conf \
-  /opt/edx/app/supervisor/conf.available.d/xqueue_consumer.conf \
-  /opt/edx/app/supervisor/conf.d/xqueue.conf \
-  /opt/edx/app/supervisor/conf.d/xqueue_consumer.conf
+  --config-files {{ edxapp_app_dir }}/lms.env.json    \
+  --config-files {{ edxapp_app_dir }}/lms.auth.json   \
+  --config-files {{ edxapp_app_dir }}/cms.env.json    \
+  --config-files {{ edxapp_app_dir }}/cms.auth.json   \
+  {{ edxapp_app_dir }} \
+  {{ edxapp_data_dir }} \
+  /opt/edx/app/supervisor/conf.available.d/lms.conf \
+  /opt/edx/app/supervisor/conf.available.d/workers.conf \
+  /opt/edx/app/supervisor/conf.available.d/cms.conf \
+  /opt/edx/app/supervisor/conf.available.d/edxapp.conf \
+  /opt/edx/app/supervisor/conf.d/lms.conf \
+  /opt/edx/app/supervisor/conf.d/workers.conf \
+  /opt/edx/app/supervisor/conf.d/cms.conf \
+  /opt/edx/app/supervisor/conf.d/edxapp.conf

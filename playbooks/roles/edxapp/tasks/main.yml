@@ -9,6 +9,7 @@
   notify:
   - "restart edxapp"
   - "restart edxapp_workers"
+  tags: pre_pkg
 
 - name: create edxapp user dirs
   file: >
