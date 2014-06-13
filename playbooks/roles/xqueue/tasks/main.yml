@@ -41,6 +41,7 @@
     src=xqueue_env.j2 dest={{ xqueue_app_dir }}/xqueue_env
     owner={{ xqueue_user }}  group={{ common_web_user }}
     mode=0644
+  tags: pkg
   notify:
     - restart xqueue
 

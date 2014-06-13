@@ -10,6 +10,6 @@ export NEW_RELIC_APP_NAME={{ XQUEUE_NEWRELIC_APPNAME }}
 export NEW_RELIC_LICENSE_KEY={{ NEWRELIC_LICENSE_KEY }}
 {% endif -%}
 
-if [[ -f "{{ COMMON_CFG_DIR/xqueue.cfg }}" ]]; then
-  source  {{ COMMON_CFG_DIR/xqueue.cfg }}
+if [[ -f "{{ COMMON_CFG_DIR }}/xqueue.cfg" ]]; then
+  source  {{ COMMON_CFG_DIR }}/xqueue.cfg
 fi
