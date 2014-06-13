@@ -55,3 +55,5 @@ echo "Restarting xqueue"
 {{ supervisor_ctl }} -c {{ supervisor_cfg }} start xqueue
 {{ supervisor_ctl }} -c {{ supervisor_cfg }} start xqueue_consumer
 
+echo "Restarting nginx"
+service nginx restart

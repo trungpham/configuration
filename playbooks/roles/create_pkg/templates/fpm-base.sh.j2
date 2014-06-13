@@ -10,6 +10,9 @@ fpm -s dir -t deb -n edx-base -v 1.0 -a native --deb-use-file-permissions \
   {% for pkg in common_debian_pkgs -%}
   -d {{ pkg }} \
   {% endfor -%}
+  {% for pkg in nginx_debian_pkgs -%}
+  -d {{ pkg }} \
+  {% endfor -%}
   /etc/sudoers.d/ssh_key_forward \
   /etc/rsyslog.d/99-edx.conf \
   /etc/logrotate.d/edx-services  \
@@ -20,4 +23,6 @@ fpm -s dir -t deb -n edx-base -v 1.0 -a native --deb-use-file-permissions \
   {{ supervisor_log_dir }} \
   /opt/edx/etc/supervisord.conf \
   /etc/init/supervisor.conf \
-  /opt/edx/bin/supervisorctl
+  /opt/edx/bin/supervisorctl \
+  /etc/nginx/nginx.conf \
+  /opt/edx/app/nginx

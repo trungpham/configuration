@@ -54,7 +54,7 @@ export EDXAPP_MYSQL_PORT=$db_port
 
 export EDXAPP_MONGO_HOSTS=$mongo_hosts
 export EDXAPP_MONGO_PASSWORD=$mongo_password
-export EDXAPP_MONGO_USER=$monago_user
+export EDXAPP_MONGO_USER=$mongo_user
 export EDXAPP_MONGO_DB_NAME=$mongo_name
 export EDXAPP_MONGO_PORT=$mongo_port
 
@@ -73,7 +73,10 @@ ln -fs {{ COMMON_CFG_DIR }}/edxapp.cfg {{ COMMON_CFG_DIR }}/lms.cfg
 ln -fs {{ COMMON_CFG_DIR }}/edxapp.cfg {{ COMMON_CFG_DIR }}/cms.cfg
 
 echo "Running migrations"
+cd {{ edxapp_code_dir }}
+source {{ COMMON_CFG_DIR }}/lms.cfg
 sudo -E -u edxapp {{ edxapp_venv_bin}}/python manage.py lms syncdb --migrate --noinput --settings=aws_env
+source {{ COMMON_CFG_DIR }}/cms.cfg
 sudo -E -u edxapp {{ edxapp_venv_bin}}/python manage.py cms syncdb --migrate --noinput --settings=aws_env
 
 echo "Updating supervisor config"
@@ -81,3 +84,6 @@ echo "Updating supervisor config"
 echo "Restarting edxapp"
 {{ supervisor_ctl }} -c {{ supervisor_cfg }} stop edxapp: >/dev/null
 {{ supervisor_ctl }} -c {{ supervisor_cfg }} start edxapp:
+
+echo "Restarting nginx"
+service nginx restart
