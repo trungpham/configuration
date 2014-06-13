@@ -1,18 +1,7 @@
 
-cat <<EOF >/tmp/$$-before-script
-#!/usr/bin/env bash
-if ! id -u {{ supervisor_user }} &>/dev/null; then useradd -M -s /bin/false {{ supervisor_user }}; fi
-if ! id -u {{ supervisor_user }} &>/dev/null; then useradd -M -s /bin/false {{ supervisor_service_user }}; fi
-EOF
-
-cat <<EOF >/tmp/$$-after-script
-#!/usr/bin/env bash
-service supervisor restart
-EOF
-
 fpm -s dir -t deb -n edx-base -v 1.0 -a native --deb-use-file-permissions \
-  --before-install /tmp/$$-before-script \
-  --after-install /tmp/$$-after-script \
+  --before-install /var/tmp/fpm-base-before \
+  --after-install /var/tmp/fpm-base-after \
   {% for exclude in create_pkg_excludes -%}
   --exclude {{ exclude }} \
   {% endfor -%}

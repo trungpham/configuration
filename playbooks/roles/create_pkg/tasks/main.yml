@@ -27,9 +27,27 @@
 
 - name: Create fpm templates
   template: >
-    src={{ item }}.j2
-    dest=/var/tmp/{{ item }}
+    src={{ item }}.sh.j2
+    dest=/var/tmp/{{ item }}.sh
   with_items:
-    - fpm-base.sh
-    - fpm-xqueue.sh
-    - fpm-edxapp.sh
+    - fpm-base
+    - fpm-xqueue
+    - fpm-edxapp
+
+- name: Create fpm before scripts
+  template: >
+    src={{ item }}.before.j2
+    dest=/var/tmp/{{ item }}.before
+  with_items:
+    - fpm-base
+    - fpm-xqueue
+    - fpm-edxapp
+
+- name: Create fpm after scripts
+  template: >
+    src={{ item }}.after.j2
+    dest=/var/tmp/{{ item }}.after
+  with_items:
+    - fpm-base
+    - fpm-xqueue
+    - fpm-edxapp
