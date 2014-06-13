@@ -1,6 +1,6 @@
 [program:xqueue_consumer]
 
-command=xqueue-consumer-supervisor.sh
+command={{ xqueue_supervisor_wrapper }}
 
 user={{ common_web_user }}
 directory={{ xqueue_code_dir }}
