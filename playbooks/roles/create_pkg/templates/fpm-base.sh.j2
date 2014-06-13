@@ -3,7 +3,6 @@ cat <<EOF >/tmp/$$-before-script
 #!/usr/bin/env bash
 if ! id -u {{ supervisor_user }} &>/dev/null; then useradd -M -s /bin/false {{ supervisor_user }}; fi
 if ! id -u {{ supervisor_user }} &>/dev/null; then useradd -M -s /bin/false {{ supervisor_service_user }}; fi
-if ! id -u {{ edx_ansible_user }} &>/dev/null; then useradd -M -s /bin/false -d {{ edx_ansible_app_dir }} {{ edx_ansible_user }}; fi
 EOF
 
 cat <<EOF >/tmp/$$-after-script
@@ -30,9 +29,6 @@ fpm -s dir -t deb -n edx-base -v 1.0 -a native --deb-use-file-permissions \
   {{ supervisor_app_dir }} \
   {{ supervisor_data_dir }} \
   {{ supervisor_log_dir }} \
-  {{ edx_ansible_app_dir }} \
-  {{ edx_ansible_data_dir }} \
   /opt/edx/etc/supervisord.conf \
   /etc/init/supervisor.conf \
-  /opt/edx/bin/supervisorctl \
-  /opt/edx/bin/ansible-playbook
+  /opt/edx/bin/supervisorctl
