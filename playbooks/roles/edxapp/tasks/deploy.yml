@@ -35,6 +35,7 @@
   sudo_user: "{{ edxapp_user }}"
   environment:
     GIT_SSH: "{{ edxapp_git_ssh }}"
+  tags: pkg
   notify:
   - "restart edxapp"
   - "restart edxapp_workers"

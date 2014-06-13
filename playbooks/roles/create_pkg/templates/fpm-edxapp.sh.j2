@@ -52,6 +52,8 @@ if [[ $reconfig =~ ^[Yy] ]]; then
 
 
     cat << EXTRA_EOF >{{ COMMON_CFG_DIR }}/edxapp.cfg
+# For now the LMS and the CMS share the same
+# Database configuration 
 export EDXAPP_MYSQL_PASSWORD=$db_password
 export EDXAPP_MYSQL_USER=$db_user
 export EDXAPP_MYSQL_DB_NAME=$db_name
@@ -75,6 +77,8 @@ export EDXAPP_MEMCACHE_HOSTS=$memcache_hosts
 EXTRA_EOF
 
 fi
+ln -fs {{ COMMON_CFG_DIR }}/edxapp.cfg {{ COMMON_CFG_DIR }}/lms.cfg
+ln -fs {{ COMMON_CFG_DIR }}/edxapp.cfg {{ COMMON_CFG_DIR }}/cms.cfg
 
 echo "Running migrations"
 sudo -E -u edxapp {{ edxapp_venv_bin}}/python manage.py lms syncdb --migrate --noinput --settings=aws_env
